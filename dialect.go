@@ -13,20 +13,20 @@ import (
 	"github.com/ngorm/ngorm/model"
 )
 
-type mysql struct {
+type Mysql struct {
 	common.Dialect
 }
 
-func (mysql) GetName() string {
+func (Mysql) GetName() string {
 	return "mysql"
 }
 
-func (mysql) Quote(key string) string {
+func (Mysql) Quote(key string) string {
 	return fmt.Sprintf("`%s`", key)
 }
 
 // Get Data Type for MySQL Dialect
-func (mysql) DataTypeOf(field *model.StructField) (string, error) {
+func (Mysql) DataTypeOf(field *model.StructField) (string, error) {
 	dataValue, sqlType, size, additionalType :=
 		model.ParseFieldStructForDialect(field)
 
@@ -108,13 +108,13 @@ func (mysql) DataTypeOf(field *model.StructField) (string, error) {
 	return fmt.Sprintf("%v %v", sqlType, additionalType), nil
 }
 
-func (s mysql) RemoveIndex(tableName string, indexName string) error {
+func (s Mysql) RemoveIndex(tableName string, indexName string) error {
 	_, err := s.DB.Exec(fmt.Sprintf("DROP INDEX %v ON %v",
 		indexName, s.Quote(tableName)))
 	return err
 }
 
-func (s mysql) HasForeignKey(tableName string, foreignKeyName string) bool {
+func (s Mysql) HasForeignKey(tableName string, foreignKeyName string) bool {
 	var count int
 	query := `
 SELECT Count(*)
@@ -129,16 +129,16 @@ WHERE  constraint_schema = ?
 	return count > 0
 }
 
-func (s mysql) CurrentDatabase() (name string) {
+func (s Mysql) CurrentDatabase() (name string) {
 	s.DB.QueryRow("SELECT DATABASE()").Scan(&name)
 	return
 }
 
-func (mysql) SelectFromDummyTable() string {
+func (Mysql) SelectFromDummyTable() string {
 	return "FROM DUAL"
 }
 
-func (s mysql) BuildForeignKeyName(tableName, field, dest string) string {
+func (s Mysql) BuildForeignKeyName(tableName, field, dest string) string {
 	keyName := s.Dialect.BuildForeignKeyName(tableName, field, dest)
 	if utf8.RuneCountInString(keyName) <= 64 {
 		return keyName
